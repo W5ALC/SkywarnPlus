@@ -42,6 +42,8 @@ config.readfp(open(configPath,"r"))
 # Fetch values from configuration file
 tmp_dir = config["DEV"].get("TmpDir", fallback="/tmp/SkywarnPlus")
 sounds_path = config["Alerting"].get("SoundsPath")
+if sounds_path == "./SOUNDS":
+    sounds_path = os.path.join(baseDir, "SOUNDS")
 countyCodes = config["Alerting"]["CountyCodes"].split(",")
 
 # If temporary directory doesn't exist, create it
@@ -300,9 +302,13 @@ def buildTailmessage(alerts):
     Args:
         alerts (list): List of active weather alerts.
     """
+    if not alerts:
+        logger.debug("No alerts, creating silent tailmessage")
+        silence = AudioSegment.silent(duration=100)
+        silence.export(tailmessage_file, format="wav")
+        return
     combined_sound = AudioSegment.empty()
     sound_effect = AudioSegment.from_wav(f"{sounds_path}/ALERTS/asn95.wav")
-
     for alert in alerts:
         try:
             index = WS.index(alert)
@@ -317,8 +323,7 @@ def buildTailmessage(alerts):
             logger.error(
                 f"Audio file not found: {sounds_path}/ALERTS/asn{WA[index]}.wav"
             )
-
-            logger.debug(f"Exporting tailmessage to {tailmessage_file}")
+    logger.debug(f"Exporting tailmessage to {tailmessage_file}")
     combined_sound.export(tailmessage_file, format="wav")
 
 
@@ -416,7 +421,8 @@ def main():
         with open(tmp_file, "r") as file:
             old_alerts = json.load(file)
     else:
-        old_alerts = []
+        old_alerts = ["init"]
+        logger.info("No previous alerts file found, starting fresh.")
 
     if old_alerts != alerts:
         with open(tmp_file, "w") as file:
@@ -444,6 +450,7 @@ def main():
                 if pushover_debug:
                     pushover_message += "Changed courtesy tones to NORMAL\n"
 
+        logger.debug(f"Alerts: {alerts}")
         if len(alerts) == 0:
             logger.info("No alerts found")
             if not os.path.exists(tmp_file):
@@ -454,10 +461,11 @@ def main():
         else:
             if say_alert_enabled:
                 sayAlert(alerts)
-            if enable_tailmessage:
-                buildTailmessage(alerts)
 
-        if pushover_enabled and old_alerts != alerts:
+        if enable_tailmessage:
+            buildTailmessage(alerts)
+
+        if pushover_enabled:
             if enable_debug:
                 logger.info(f"Sending pushover notification: {pushover_message}")
             send_pushover_notification(pushover_message, title="Alerts Changed")
