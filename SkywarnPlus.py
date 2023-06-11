@@ -462,8 +462,7 @@ def main():
                 logger.info(f"Sending pushover notification: {pushover_message}")
             send_pushover_notification(pushover_message, title="Alerts Changed")
     else:
-        logger.info("No change in alerts")
-    logger.info("Done")
+        logger.debug("No change in alerts")
 
 if __name__ == '__main__':
     main()
