@@ -189,6 +189,10 @@ f_handler.setFormatter(f_format)
 logger.addHandler(c_handler)
 logger.addHandler(f_handler)
 
+logger.debug("Tailmessage file: {}".format(tailmessage_file))
+logger.debug("Sounds path: {}".format(sounds_path))
+logger.debug("Blocked events: {}".format(blocked_events))
+
 
 def getAlerts(countyCodes):
     """
@@ -479,13 +483,6 @@ def main():
                 if pushover_debug:
                     pushover_message += "Changed courtesy tones to NORMAL\n"
 
-        if enable_tailmessage:
-            buildTailmessage(alerts)
-            if not alerts:
-                pushover_message += "Tailmessage replaced with silence\n"
-            else:
-                pushover_message += "Built tailmessage with alerts: {}\n".format(alerts)
-
         logger.debug("Alerts: {}".format(alerts))
         if len(alerts) == 0:
             logger.info("No alerts found")
@@ -497,6 +494,13 @@ def main():
         else:
             if say_alert_enabled:
                 sayAlert(alerts)
+
+        if enable_tailmessage:
+            buildTailmessage(alerts)
+            if not alerts:
+                pushover_message += "Tailmessage replaced with silence\n"
+            else:
+                pushover_message += "Built tailmessage with alerts: {}\n".format(alerts)
 
         if pushover_enabled:
             if enable_debug:
