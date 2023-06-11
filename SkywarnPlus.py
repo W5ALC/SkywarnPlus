@@ -178,7 +178,7 @@ if CLEANSLATE == "True":
 # Configure logging
 log_config = config["Logging"]
 enable_debug = log_config.getboolean("Debug", fallback=False)
-log_file = log_config.get("LogPath", fallback=f"{tmp_dir}/SkywarnPlus.log")
+log_file = log_config.get("LogPath", fallback="{}/SkywarnPlus.log".format(tmp_dir))
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG if enable_debug else logging.INFO)
 c_handler = logging.StreamHandler()
@@ -200,15 +200,15 @@ def getAlerts(countyCodes):
     Returns:
         alerts (list): List of active weather alerts.
     """
-    alerts = []
+    alerts = set()  # Change list to set to automatically avoid duplicate alerts
     current_time = datetime.now(timezone.utc)
-    logger.debug(f"Checking for alerts in {countyCodes}")
+    logger.debug("Checking for alerts in {}".format(countyCodes))
     for countyCode in countyCodes:
-        logger.debug(f"Checking for alerts in {countyCode}")
-        url = f"https://api.weather.gov/alerts/active?zone={countyCode}"
-        logger.debug(f"Requesting {url}")
+        logger.debug("Checking for alerts in {}".format(countyCode))
+        url = "https://api.weather.gov/alerts/active?zone={}".format(countyCode)
+        logger.debug("Requesting {}".format(url))
         response = requests.get(url)
-        logger.debug(f"Response: {response.text}\n\n")
+        logger.debug("Response: {}\n\n".format(response.text))
 
         if response.status_code == 200:
             alert_data = response.json()
@@ -220,19 +220,19 @@ def getAlerts(countyCodes):
                         event = feature["properties"]["event"]
                         for blocked_event in blocked_events:
                             if fnmatch.fnmatch(event, blocked_event):
-                                logger.debug(f"Blocking {event} as per configuration")
+                                logger.debug("Blocking {} as per configuration".format(event))
                                 break
                         else:
-                            alerts.append(event)
-                            logger.debug(f"{countyCode}: {event}")
+                            alerts.add(event)  # Add event to set
+                            logger.debug("{}: {}".format(countyCode, event))
         else:
             logger.error(
-                f"Failed to retrieve alerts for {countyCode}, HTTP status code {response.status_code}, response: {response.text}"
+                "Failed to retrieve alerts for {}, HTTP status code {}, response: {}".format(countyCode, response.status_code, response.text)
             )
 
+    alerts = list(alerts)  # Convert set back to list
     alerts.sort(key=lambda x: WS.index(x) if x in WS else len(WS))
     return alerts
-
 
 def sayAlert(alerts):
     """
@@ -241,7 +241,7 @@ def sayAlert(alerts):
     Args:
         alerts (list): List of active weather alerts.
     """
-    alert_file = f"{sounds_path}/alert.wav"
+    alert_file = "{}/alert.wav".format(sounds_path)
     combined_sound = AudioSegment.from_wav(
         os.path.join(sounds_path, "ALERTS", "asn97.wav")
     )
@@ -253,27 +253,29 @@ def sayAlert(alerts):
         try:
             index = WS.index(alert)
             audio_file = AudioSegment.from_wav(
-                os.path.join(sounds_path, "ALERTS", f"asn{WA[index]}.wav")
+                os.path.join(sounds_path, "ALERTS", "asn{}.wav".format(WA[index]))
             )
             combined_sound += sound_effect + audio_file
-            logger.debug(f"Added {alert} (asn{WA[index]}.wav) to alert sound")
+            logger.debug("Added {} (asn{}.wav) to alert sound".format(alert, WA[index]))
         except ValueError:
-            logger.error(f"Alert not found: {alert}")
+            logger.error("Alert not found: {}".format(alert))
         except FileNotFoundError:
             logger.error(
-                f"Audio file not found: {sounds_path}/ALERTS/asn{WA[index]}.wav"
+                "Audio file not found: {}/ALERTS/asn{}.wav".format(sounds_path, WA[index])
             )
 
-    logger.debug(f"Exporting alert sound to {alert_file}")
-    combined_sound.export(alert_file, format="wav")
+    logger.debug("Exporting alert sound to {}".format(alert_file))
+    converted_combined_sound = convert_audio(combined_sound)
+    converted_combined_sound.export(alert_file, format="wav")
 
     logger.debug("Replacing tailmessage with silence")
-    silence = AudioSegment.silent(duration=200)
-    silence.export(tailmessage_file, format="wav")
+    silence = AudioSegment.silent(duration=100)
+    converted_silence = convert_audio(silence)
+    converted_silence.export(tailmessage_file, format="wav")
     node_numbers = config["Asterisk"]["Nodes"].split(",")
 
     for node_number in node_numbers:
-        logger.info(f"Broadcasting alert on node {node_number}")
+        logger.info("Broadcasting alert on node {}".format(node_number))
         command = f'/usr/sbin/asterisk -rx "rpt localplay {node_number.strip()} {os.path.splitext(os.path.abspath(alert_file))[0]}"'
         subprocess.run(command, shell=True)
 
@@ -289,7 +291,7 @@ def sayAllClear():
     node_numbers = config["Asterisk"]["Nodes"].split(",")
 
     for node_number in node_numbers:
-        logger.info(f"Broadcasting all clear message on node {node_number}")
+        logger.info("Broadcasting all clear message on node {}".format(node_number))
         command = f'/usr/sbin/asterisk -rx "rpt localplay {node_number.strip()} {os.path.splitext(os.path.abspath(alert_clear))[0]}"'
         subprocess.run(command, shell=True)
 
@@ -305,26 +307,28 @@ def buildTailmessage(alerts):
     if not alerts:
         logger.debug("No alerts, creating silent tailmessage")
         silence = AudioSegment.silent(duration=100)
-        silence.export(tailmessage_file, format="wav")
+        converted_silence = convert_audio(silence)
+        converted_silence.export(tailmessage_file, format="wav")
         return
     combined_sound = AudioSegment.empty()
-    sound_effect = AudioSegment.from_wav(f"{sounds_path}/ALERTS/asn95.wav")
+    sound_effect = AudioSegment.from_wav(os.path.join(sounds_path, "ALERTS", "asn95.wav"))
     for alert in alerts:
         try:
             index = WS.index(alert)
             audio_file = AudioSegment.from_wav(
-                f"{sounds_path}/ALERTS/asn{WA[index]}.wav"
+                os.path.join(sounds_path, "ALERTS", "asn{}.wav".format(WA[index]))
             )
             combined_sound += sound_effect + audio_file
-            logger.debug(f"Added {alert} (asn{WA[index]}.wav) to tailmessage")
+            logger.debug("Added {} (asn{}.wav) to tailmessage".format(alert, WA[index]))
         except ValueError:
-            logger.error(f"Alert not found: {alert}")
+            logger.error("Alert not found: {}".format(alert))
         except FileNotFoundError:
             logger.error(
-                f"Audio file not found: {sounds_path}/ALERTS/asn{WA[index]}.wav"
+                "Audio file not found: {}/ALERTS/asn{}.wav".format(sounds_path, WA[index])
             )
-    logger.debug(f"Exporting tailmessage to {tailmessage_file}")
-    combined_sound.export(tailmessage_file, format="wav")
+    logger.debug("Exporting tailmessage to {}".format(tailmessage_file))
+    converted_combined_sound = convert_audio(combined_sound)
+    converted_combined_sound.export(tailmessage_file, format="wav")
 
 
 def changeCT(ct):
@@ -358,17 +362,17 @@ def changeCT(ct):
             current_ct = file.read().strip()
 
     if ct == current_ct:
-        logger.debug(f"Courtesy tones are already {ct}, no changes made.")
+        logger.debug("Courtesy tones are already {}, no changes made.".format(ct))
         return
 
     if ct == "NORMAL":
         logger.info("Changing to NORMAL courtesy tones")
-        shutil.copyfile(f"{tone_dir}/{local_ct}", f"{tone_dir}/{rpt_local_ct}")
-        shutil.copyfile(f"{tone_dir}/{link_ct}", f"{tone_dir}/{rpt_link_ct}")
+        shutil.copyfile(tone_dir + "/" + local_ct, tone_dir + "/" + rpt_local_ct)
+        shutil.copyfile(tone_dir + "/" + link_ct, tone_dir + "/" + rpt_link_ct)
     else:
-        logger.info(f"Changing to {ct} courtesy tone")
-        shutil.copyfile(f"{tone_dir}/{wx_ct}", f"{tone_dir}/{rpt_local_ct}")
-        shutil.copyfile(f"{tone_dir}/{wx_ct}", f"{tone_dir}/{rpt_link_ct}")
+        logger.info("Changing to {} courtesy tone".format(ct))
+        shutil.copyfile(tone_dir + "/" + wx_ct, tone_dir + "/" + rpt_local_ct)
+        shutil.copyfile(tone_dir + "/" + wx_ct, tone_dir + "/" + rpt_link_ct)
 
     with open(ct_state_file, "w") as file:
         file.write(ct)
@@ -404,7 +408,19 @@ def send_pushover_notification(message, title=None, priority=0):
     response = requests.post(url, data=payload)
 
     if response.status_code != 200:
-        logger.error(f"Failed to send Pushover notification: {response.text}")
+        logger.error("Failed to send Pushover notification: {}".format(response.text))
+
+def convert_audio(audio):
+    """
+    Convert audio file to 8000Hz mono for compatibility with Asterisk.
+
+    Args:
+        audio (AudioSegment): Audio file to be converted.
+
+    Returns:
+        AudioSegment: Converted audio file.
+    """
+    return audio.set_frame_rate(8000).set_channels(1)
 
 def main():
     """
@@ -415,7 +431,7 @@ def main():
     say_alert_enabled = config["Alerting"].getboolean("SayAlert", fallback=False)
     say_all_clear_enabled = config["Alerting"].getboolean("SayAllClear", fallback=False)
     alerts = getAlerts(countyCodes)
-    tmp_file = f"{tmp_dir}/alerts.json"
+    tmp_file = "{}/alerts.json".format(tmp_dir)
 
     if os.path.exists(tmp_file):
         with open(tmp_file, "r") as file:
@@ -433,10 +449,7 @@ def main():
 
         pushover_enabled = config["Pushover"].getboolean("Enable", fallback=False)
         pushover_debug = config["Pushover"].getboolean("Debug", fallback=False)
-        if pushover_debug:
-            pushover_message = f"Alerts changed: {alerts}\n"
-        else:
-            pushover_message = f"Alerts changed: {alerts}"
+        pushover_message = "Alerts changed: {}\n".format(alerts)
 
         if enable_ct_auto_change:
             for alert in alerts:
@@ -450,7 +463,14 @@ def main():
                 if pushover_debug:
                     pushover_message += "Changed courtesy tones to NORMAL\n"
 
-        logger.debug(f"Alerts: {alerts}")
+        if enable_tailmessage:
+            buildTailmessage(alerts)
+            if not alerts:
+                pushover_message += "Tailmessage replaced with silence\n"
+            else:
+                pushover_message += "Built tailmessage with alerts: {}\n".format(alerts)
+
+        logger.debug("Alerts: {}".format(alerts))
         if len(alerts) == 0:
             logger.info("No alerts found")
             if not os.path.exists(tmp_file):
@@ -462,12 +482,9 @@ def main():
             if say_alert_enabled:
                 sayAlert(alerts)
 
-        if enable_tailmessage:
-            buildTailmessage(alerts)
-
         if pushover_enabled:
             if enable_debug:
-                logger.info(f"Sending pushover notification: {pushover_message}")
+                logger.info("Sending pushover notification: {}".format(pushover_message))
             send_pushover_notification(pushover_message, title="Alerts Changed")
     else:
         logger.debug("No change in alerts")
