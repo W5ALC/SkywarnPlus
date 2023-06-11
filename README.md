@@ -1,45 +1,43 @@
 # SkywarnPlus
 
-SkywarnPlus is an optimized, powerful weather alert system designed for Asterisk/app_rpt repeater controller systems. Developed in Python, a high-level and fast programming language, SkywarnPlus leverages the capabilities of the new and improved [NWS CAP v1.2 JSON API](https://www.weather.gov/documentation/services-web-api). 
-
-The system is resource-efficient, meaning it doesn't consume unnecessary internet bandwidth or cause excess wear on your physical storage. This is especially beneficial for Raspberry Pi users, as it helps to extend the lifespan of your SD card by limiting unnecessary I/O operations. 
-
-SkywarnPlus is designed to deliver timely and accurate weather alerts while providing extensive customization options to suit your specific needs.
+SkywarnPlus is an optimized, powerful weather alert system designed for Asterisk/app_rpt repeater controller systems such as [AllStarLink](https://allstarlink.org/) and [HAMVOIP](https://hamvoip.org/). It's written in Python and utilizes the new [NWS CAP v1.2 JSON API](https://www.weather.gov/documentation/services-web-api). SkywarnPlus is optimized to be resource-efficient and offers customization options to suit various user needs.
 
 ## Features
 
-* **Natural Human Speech**: SkywarnPlus features a library of real female human speech recordings, providing a more pleasant and natural experience compared to synthesized speech. This leads to clearer, more understandable alerts that enhance user experience.
-* **Optimized Performance**: SkywarnPlus is written in Python, resulting in superior performance compared to scripts written in bash. The optimized design ensures minimal impact on internet bandwidth and physical storage.
-* **Comprehensive alert coverage**: You can specify as many counties or zones as you want to check for alerts, enabling broad coverage and ensuring you're always informed about the latest weather conditions.
-* **Advanced filtering**: Block or filter any alerts you don't want. SkywarnPlus supports regular expressions and wildcards, giving you comprehensive control over the alerts you receive.
-* **Automatic courtesy tone changes**: SkywarnPlus can automatically change the repeater courtesy tones when specified alerts exist, adding a layer of customization and relevance to your alert system.
-* **Duplicate alert removal**: SkywarnPlus automatically removes any duplicate alerts, ensuring you only receive unique and relevant alerts.
-* **Selectable alert broadcasting**: You can choose to broadcast alerts when weather conditions change or when they dissipate, providing timely updates on weather conditions.
-* **Automated Tailmessage management**: Tailmessage management provides selectable unobtrusive alerting even if alert broadcasting is disabled.
-* **Pushover integration**: Get alerts and debug messages directly sent to your phone, ensuring you're always connected and updated.
-* **Supports multiple local nodes**: SkywarnPlus allows you to specify as many local node numbers as you want for alerting, providing flexibility in how your alerts are distributed.
+* **Human Speech Alerts**: Provides a library of recorded human speech for clearer, more understandable alerts.
+* **Performance**: Designed for minimal impact on internet bandwidth and storage, reducing unnecessary I/O operations.
+* **Alert Coverage**: Allows specifying multiple counties or zones for alerts, ensuring broad coverage.
+* **Alert Filtering**: Provides advanced options to block or filter alerts using regular expressions and wildcards.
+* **Courtesy Tone Changes**: Changes repeater courtesy tones based on active alerts.
+* **Duplicate Alert Removal**: Ensures you receive unique and relevant alerts by automatically removing duplicates.
+* **Selective Broadcasting**: Broadcasts alerts on weather conditions' onset or dissipation.
+* **Tailmessage Management**: Provides unobtrusive alerting if alert broadcasting is disabled.
+* **Pushover Integration**: Sends alerts and debug messages directly to your phone.
+* **Multiple Local Nodes**: Supports alert distribution to as many local node numbers as desired.
 
 ## How It Works
 
-SkywarnPlus is a sophisticated weather alert system for Asterisk/app_rpt repeater controller systems. It leverages the capabilities of the National Weather Service's (NWS) CAP v1.2 JSON API. Here's a detailed breakdown of how SkywarnPlus functions:
+SkywarnPlus is a Python-based weather alert system for Asterisk/app_rpt repeater controller systems, leveraging the National Weather Service's (NWS) CAP v1.2 JSON API. The system follows several key steps to deliver timely and accurate weather alerts:
 
-1. **Data Fetching**: SkywarnPlus queries the NWS CAP v1.2 API at regular intervals. This API provides a JSON response containing comprehensive details about the latest weather conditions and alerts.
+1. **Data Fetching**: The system performs regular API calls to the NWS CAP v1.2 API, which provides comprehensive, real-time data on the latest weather conditions and alerts. The frequency of these calls can be adjusted according to user needs.
 
-2. **Data Parsing and Filtering**: Upon receiving the API response, SkywarnPlus parses the JSON data to extract relevant information. It then filters this information based on user-defined criteria set in the configuration file, such as specific counties or zones of interest. Users can also choose to filter out certain types of alerts using regular expressions and wildcards.
+2. **Data Parsing**: Upon receiving the API response, SkywarnPlus parses the JSON data to extract the information pertinent to weather alerts. This involves reading the structured JSON data and converting it into an internal format for further processing.
 
-3. **Alert Management**: SkywarnPlus intelligently manages alerts, eliminating duplicates to ensure that you only receive unique and relevant weather warnings. 
+3. **Data Filtering**: The extracted data is then filtered based on user-defined criteria set in the configuration file. This includes narrowing down the information to specific counties or zones of interest, as well as excluding certain types of alerts. The filtering mechanism supports regular expressions and wildcards for more sophisticated filtering rules.
 
-4. **Alert Broadcasting**: Based on your settings, SkywarnPlus will then broadcast the alerts. You can customize this process to broadcast alerts when weather conditions change or when they dissipate.
+4. **Alert Management**: SkywarnPlus manages the filtered alerts intelligently, ensuring that each alert is unique and relevant. Duplicate alerts are automatically removed from the pool of active alerts to prevent repetition and alert fatigue.
 
-5. **Tailmessage and Courtesy Tones**: SkywarnPlus can automatically update tailmessages and change the repeater courtesy tones when specific alerts are active. This process is also customizable based on user preferences.
+5. **Alert Broadcasting**: The system then broadcasts the alerts according to user-defined settings. You can customize these settings to broadcast alerts when new weather conditions are detected or when existing conditions dissipate. This ensures timely communication of weather changes.
 
-6. **Pushover Integration**: SkywarnPlus is integrated with Pushover, which means it can send alerts and debug messages directly to your phone, keeping you constantly updated.
+6. **Tailmessage and Courtesy Tones**: In addition to broadcasting alerts, SkywarnPlus also automatically updates tailmessages and changes the repeater courtesy tones when specific alerts are active. These changes add a level of customization and context-awareness to the alert system and can be tailored to individual preferences.
 
-7. **Real Human Speech**: Unlike many other weather alert systems, SkywarnPlus uses a library of real female human speech recordings. This makes the alerts more understandable and pleasant to listen to, compared to synthetic speech.
+7. **Pushover Integration**: SkywarnPlus integrates with Pushover, a mobile notification service, to send alerts and debug messages directly to your phone. This provides a direct and immediate communication channel, keeping you constantly updated on the latest weather conditions.
 
-8. **Maintenance**: Lastly, SkywarnPlus is designed with efficiency in mind. It minimizes its impact on internet bandwidth and physical storage, making it a great choice for systems like Raspberry Pi.
+8. **Real Human Speech**: To enhance clarity and improve user experience, SkywarnPlus uses a library of real female human speech recordings for alerts. This creates a more natural listening experience compared to synthetic speech and aids in clear communication of alert messages.
 
-SkywarnPlus's design strikes a balance between functionality and resource efficiency. While it provides a comprehensive range of features, it is also careful to respect your system's resources, ensuring a smooth and responsive experience for users.
+9. **Maintenance and Resource Management**: Designed with efficiency in mind, SkywarnPlus minimizes its impact on internet bandwidth and physical storage. The system conducts its operations mindful of resource usage, making it particularly suitable for devices with limited resources, such as Raspberry Pi.
+
+This combination of steps ensures SkywarnPlus provides reliable, timely, and accurate weather alerts, while respecting your system's resources and providing extensive customization options.
 
 ## Installation
 
@@ -89,7 +87,7 @@ This command will execute SkywarnPlus every minute.
 
 ## Configuration
 
-Refer to the [config.ini](config.ini) file and update the parameters according to your setup and preferences.
+Update parameters in the [config.ini](config.ini) file according to your preferences.
 
 ## Tailmessage and Courtesy Tones
 
