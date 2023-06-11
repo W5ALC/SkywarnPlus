@@ -39,7 +39,7 @@ Clone the SkywarnPlus repository from GitHub to the `/usr/local/bin` directory:
 
 ```bash
 cd /usr/local/bin
-git clone https://github.com/user/SkywarnPlus.git
+git clone https://github.com/mason10198/SkywarnPlus.git
 ```
 3. **Edit Configuration**
 
