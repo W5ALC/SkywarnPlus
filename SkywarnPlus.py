@@ -37,7 +37,7 @@ from pydub import AudioSegment
 baseDir = os.path.dirname(os.path.realpath(__file__))
 configPath = os.path.join(baseDir, "config.ini")
 config = configparser.ConfigParser()
-config.readfp(open(configPath,"r"))
+config.readfp(open(configPath, "r"))
 
 # Fetch values from configuration file
 tmp_dir = config["DEV"].get("TmpDir", fallback="/tmp/SkywarnPlus")
@@ -220,19 +220,24 @@ def getAlerts(countyCodes):
                         event = feature["properties"]["event"]
                         for blocked_event in blocked_events:
                             if fnmatch.fnmatch(event, blocked_event):
-                                logger.debug("Blocking {} as per configuration".format(event))
+                                logger.debug(
+                                    "Blocking {} as per configuration".format(event)
+                                )
                                 break
                         else:
                             alerts.add(event)  # Add event to set
                             logger.debug("{}: {}".format(countyCode, event))
         else:
             logger.error(
-                "Failed to retrieve alerts for {}, HTTP status code {}, response: {}".format(countyCode, response.status_code, response.text)
+                "Failed to retrieve alerts for {}, HTTP status code {}, response: {}".format(
+                    countyCode, response.status_code, response.text
+                )
             )
 
     alerts = list(alerts)  # Convert set back to list
     alerts.sort(key=lambda x: WS.index(x) if x in WS else len(WS))
     return alerts
+
 
 def sayAlert(alerts):
     """
@@ -261,7 +266,9 @@ def sayAlert(alerts):
             logger.error("Alert not found: {}".format(alert))
         except FileNotFoundError:
             logger.error(
-                "Audio file not found: {}/ALERTS/asn{}.wav".format(sounds_path, WA[index])
+                "Audio file not found: {}/ALERTS/asn{}.wav".format(
+                    sounds_path, WA[index]
+                )
             )
 
     logger.debug("Exporting alert sound to {}".format(alert_file))
@@ -298,7 +305,7 @@ def sayAllClear():
 
 def buildTailmessage(alerts):
     """
-    Build a tailmessage, which is a short message appended to the end of a 
+    Build a tailmessage, which is a short message appended to the end of a
     transmission to update on the weather conditions.
 
     Args:
@@ -311,7 +318,9 @@ def buildTailmessage(alerts):
         converted_silence.export(tailmessage_file, format="wav")
         return
     combined_sound = AudioSegment.empty()
-    sound_effect = AudioSegment.from_wav(os.path.join(sounds_path, "ALERTS", "asn95.wav"))
+    sound_effect = AudioSegment.from_wav(
+        os.path.join(sounds_path, "ALERTS", "asn95.wav")
+    )
     for alert in alerts:
         try:
             index = WS.index(alert)
@@ -324,7 +333,9 @@ def buildTailmessage(alerts):
             logger.error("Alert not found: {}".format(alert))
         except FileNotFoundError:
             logger.error(
-                "Audio file not found: {}/ALERTS/asn{}.wav".format(sounds_path, WA[index])
+                "Audio file not found: {}/ALERTS/asn{}.wav".format(
+                    sounds_path, WA[index]
+                )
             )
     logger.debug("Exporting tailmessage to {}".format(tailmessage_file))
     converted_combined_sound = convert_audio(combined_sound)
@@ -342,7 +353,7 @@ def changeCT(ct):
         ct (str): The name of the new CT to use. This should be one of the CTs specified in the config file.
 
     Returns:
-        None
+        bool: True if the CT was changed, False otherwise.
     """
     tone_dir = config["CourtesyTones"].get("ToneDir")
     local_ct = config["CourtesyTones"].get("LocalCT")
@@ -363,7 +374,7 @@ def changeCT(ct):
 
     if ct == current_ct:
         logger.debug("Courtesy tones are already {}, no changes made.".format(ct))
-        return
+        return False
 
     if ct == "NORMAL":
         logger.info("Changing to NORMAL courtesy tones")
@@ -376,6 +387,7 @@ def changeCT(ct):
 
     with open(ct_state_file, "w") as file:
         file.write(ct)
+    return True
 
 
 def send_pushover_notification(message, title=None, priority=0):
@@ -410,6 +422,7 @@ def send_pushover_notification(message, title=None, priority=0):
     if response.status_code != 200:
         logger.error("Failed to send Pushover notification: {}".format(response.text))
 
+
 def convert_audio(audio):
     """
     Convert audio file to 8000Hz mono for compatibility with Asterisk.
@@ -422,10 +435,11 @@ def convert_audio(audio):
     """
     return audio.set_frame_rate(8000).set_channels(1)
 
+
 def main():
     """
-    Main function of the script, that fetches and processes severe weather 
-    alerts, then integrates these alerts into an Asterisk/app_rpt based radio 
+    Main function of the script, that fetches and processes severe weather
+    alerts, then integrates these alerts into an Asterisk/app_rpt based radio
     repeater system.
     """
     say_alert_enabled = config["Alerting"].getboolean("SayAlert", fallback=False)
@@ -445,7 +459,9 @@ def main():
             json.dump(alerts, file)
 
         ct_alerts = config["CourtesyTones"].get("CTAlerts").split(",")
-        enable_ct_auto_change = config["CourtesyTones"].getboolean("Enable", fallback=False)
+        enable_ct_auto_change = config["CourtesyTones"].getboolean(
+            "Enable", fallback=False
+        )
 
         pushover_enabled = config["Pushover"].getboolean("Enable", fallback=False)
         pushover_debug = config["Pushover"].getboolean("Debug", fallback=False)
@@ -454,12 +470,12 @@ def main():
         if enable_ct_auto_change:
             for alert in alerts:
                 if alert in ct_alerts:
-                    changeCT("WX")
-                    if pushover_debug:
-                        pushover_message += "Changed courtesy tones to WX\n"
+                    if changeCT("WX"):  # If the CT was actually changed
+                        if pushover_debug:
+                            pushover_message += "Changed courtesy tones to WX\n"
                     break
-            else:
-                changeCT("NORMAL")
+        else:
+            if changeCT("NORMAL"):  # If the CT was actually changed
                 if pushover_debug:
                     pushover_message += "Changed courtesy tones to NORMAL\n"
 
@@ -484,10 +500,13 @@ def main():
 
         if pushover_enabled:
             if enable_debug:
-                logger.info("Sending pushover notification: {}".format(pushover_message))
+                logger.info(
+                    "Sending pushover notification: {}".format(pushover_message)
+                )
             send_pushover_notification(pushover_message, title="Alerts Changed")
     else:
         logger.debug("No change in alerts")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
