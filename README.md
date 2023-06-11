@@ -41,16 +41,22 @@ Clone the SkywarnPlus repository from GitHub to the `/usr/local/bin` directory:
 cd /usr/local/bin
 git clone https://github.com/user/SkywarnPlus.git
 ```
+3. **Edit Configuration**
 
-3. **Crontab Entry**
+Edit the configuration file to suit your system
+```bash
+sudo nano SkywarnPlus/config.ini
+```
+
+4. **Crontab Entry**
 
 Add a crontab entry to call SkywarnPlus on an interval. Open your crontab file using the `crontab -e` command, and add the following line:
 
 ```bash
-* * * * * python3 /usr/local/bin/SkywarnPlus/main.py
+* * * * * /usr/bin/python3 /usr/local/bin/SkywarnPlus/SkywarnPlus.py
 ```
 
-This command will execute the SkywarnPlus script every minute.
+This command will execute SkywarnPlus every minute.
 
 ## Configuration
 
@@ -72,9 +78,7 @@ tailmessagelist = /usr/local/bin/SkywarnPlus/SOUNDS/WX-TAIL
 
 ### Automatic Courtesy Tones
 
-SkywarnPlus can automatically change
-
- the repeater courtesy tone whenever certain weather alerts are active. The configuration for this is based on your `rpt.conf` file setup. Here's an example:
+SkywarnPlus can automatically change the repeater courtesy tone whenever certain weather alerts are active. The configuration for this is based on your `rpt.conf` file setup. Here's an example:
 
 ```bash
 [NODENUMBER]
