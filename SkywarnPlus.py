@@ -271,7 +271,7 @@ def sayAlert(alerts):
 
     for node_number in node_numbers:
         logger.info(f"Broadcasting alert on node {node_number}")
-        command = f'/usr/sbin/asterisk -rx "rpt localplay {node_number.strip()} {os.path.splitext(alert_file)[0]}"'
+        command = f'/usr/sbin/asterisk -rx "rpt localplay {node_number.strip()} {os.path.splitext(os.path.abspath(alert_file))[0]}"'
         subprocess.run(command, shell=True)
 
     logger.info("Waiting 30 seconds for Asterisk to make announcement...")
@@ -287,7 +287,7 @@ def sayAllClear():
 
     for node_number in node_numbers:
         logger.info(f"Broadcasting all clear message on node {node_number}")
-        command = f'/usr/sbin/asterisk -rx "rpt localplay {node_number.strip()} {os.path.splitext(alert_clear)[0]}"'
+        command = f'/usr/sbin/asterisk -rx "rpt localplay {node_number.strip()} {os.path.splitext(os.path.abspath(alert_clear))[0]}"'
         subprocess.run(command, shell=True)
 
 
