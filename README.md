@@ -1,6 +1,6 @@
 # SkywarnPlus
 
-SkywarnPlus is an optimized, powerful weather alert system designed for Asterisk/app_rpt repeater controller systems. Developed in Python, a high-level and fast programming language, SkywarnPlus leverages the capabilities of the new and improved NWS CAP v1.2 JSON API. 
+SkywarnPlus is an optimized, powerful weather alert system designed for Asterisk/app_rpt repeater controller systems. Developed in Python, a high-level and fast programming language, SkywarnPlus leverages the capabilities of the new and improved [NWS CAP v1.2 JSON API](https://www.weather.gov/documentation/services-web-api). 
 
 The system is resource-efficient, meaning it doesn't consume unnecessary internet bandwidth or cause excess wear on your physical storage. This is especially beneficial for Raspberry Pi users, as it helps to extend the lifespan of your SD card by limiting unnecessary I/O operations. 
 
@@ -8,6 +8,7 @@ SkywarnPlus is designed to deliver timely and accurate weather alerts while prov
 
 ## Features
 
+* **Natural Human Speech**: SkywarnPlus features a library of real female human speech recordings, providing a more pleasant and natural experience compared to synthesized speech. This leads to clearer, more understandable alerts that enhance user experience.
 * **Optimized Performance**: SkywarnPlus is written in Python, resulting in superior performance compared to scripts written in bash. The optimized design ensures minimal impact on internet bandwidth and physical storage.
 * **Comprehensive alert coverage**: You can specify as many counties or zones as you want to check for alerts, enabling broad coverage and ensuring you're always informed about the latest weather conditions.
 * **Advanced filtering**: Block or filter any alerts you don't want. SkywarnPlus supports regular expressions and wildcards, giving you comprehensive control over the alerts you receive.
@@ -94,6 +95,16 @@ remotetx = /usr/local/bin/SkywarnPlus/SOUNDS/TONES/CT-LOCAL
 ## Contributing
 
 SkywarnPlus is open-source and welcomes contributions. If you'd like to contribute, please fork the repository and use a feature branch. Pull requests are warmly welcome.
+
+## Maintenance and Bug Reporting
+
+SkywarnPlus is actively maintained by a single individual who dedicates their spare time to improve and manage this project. Despite best efforts, the application may have some bugs or areas for improvement.
+
+If you encounter any issues with SkywarnPlus, please check back to the [SkywarnPlus GitHub Repository](https://github.com/mason10198/SkywarnPlus) to see if there have been any updates or fixes since the last time you downloaded it. New commits are made regularly to enhance the system's performance and rectify any known issues.
+
+Bug reporting is greatly appreciated as it helps to improve SkywarnPlus. If you spot a bug, please raise an issue in the GitHub repository detailing the problem. Include as much information as possible, such as error messages, screenshots, and steps to reproduce the issue. This will assist in quickly understanding and resolving the issue. 
+
+Thank you for your understanding and assistance in making SkywarnPlus a more robust and reliable system for all.
 
 ## License
 
