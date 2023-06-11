@@ -34,9 +34,10 @@ from dateutil import parser
 from pydub import AudioSegment
 
 # Configuration file handling
-config_file_path = "config.ini"
+baseDir = os.path.dirname(os.path.realpath(__file__))
+configPath = os.path.join(baseDir, "config.ini")
 config = configparser.ConfigParser()
-config.read(config_file_path)
+config.readfp(open(configPath,"r"))
 
 # Fetch values from configuration file
 tmp_dir = config["DEV"].get("TmpDir", fallback="/tmp/SkywarnPlus")
